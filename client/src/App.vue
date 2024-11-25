@@ -1,10 +1,27 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
+import axios from "axios";
+import { onMounted, ref } from 'vue';
+// import HelloWorld from './components/HelloWorld.vue'
+const items = ref([]);
+const description = ref("");
+// const apiUrl = import.meta.env.VITE_API_URL;
+onMounted (async()=>{
+  const response = await axios.get('api/bucketListItems/')
+  items.value = response.data;
+  console.log(items)
+});
+const addItem = async()=>{
+  const response = await axios.post('api/bucketListItems/',{
+    description: description.value
+  })
+  items.value.push(response.data)
+  description.value = ""
+}
 </script>
 
 <template>
-  <header>
+  <!-- <header>
     <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
 
     <div class="wrapper">
@@ -15,9 +32,24 @@ import HelloWorld from './components/HelloWorld.vue'
         <RouterLink to="/about">About</RouterLink>
       </nav>
     </div>
-  </header>
-
-  <RouterView />
+  </header> -->
+  <div>
+    <div class="control is-expanded">
+      <input class="input" v-model="description" type="text" name="" id="">
+    </div>
+    <div class="control">
+      <a class="button is-info" @click="addItem" :disable="!description">Add</a>
+    </div>
+    <div class="notification" v-for="(item,i) in items" :key="item.id">
+      <p>
+        <span class="tag is-primary">
+          {{i+1}}
+        </span>
+        <!-- hi -->
+        {{item.description}}
+      </p>
+    </div>
+</div>
 </template>
 
 <style scoped>
