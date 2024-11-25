@@ -5,12 +5,19 @@ import { onMounted, ref } from 'vue';
 // import HelloWorld from './components/HelloWorld.vue'
 const items = ref([]);
 const description = ref("");
+const selected = ref("")
+const editedDescription = ref("")
 // const apiUrl = import.meta.env.VITE_API_URL;
 onMounted (async()=>{
+  await getData();
+});
+
+const getData = async()=>{
   const response = await axios.get('api/bucketListItems/')
   items.value = response.data;
-  console.log(items)
-});
+  console.log(items.value)
+}
+
 const addItem = async()=>{
   const response = await axios.post('api/bucketListItems/',{
     description: description.value
@@ -18,6 +25,31 @@ const addItem = async()=>{
   items.value.push(response.data)
   description.value = ""
 }
+
+const deleteItem = async(id)=>{
+  const response = await axios.delete(`api/bucketListItems/${id}`)
+  await getData();
+}
+
+const selectItem = async(id, descri)=>{
+  selected.value = id
+  editedDescription.value = descri
+}
+
+const cancel= ()=>{
+    selected.value = ""
+  editedDescription.value = ""
+}
+
+const editItem = async(id)=>{
+  const response = await axios.put(`api/bucketListItems/${id}`,{
+    description: editedDescription.value
+  })
+  selected.value = ""
+  editedDescription.value = ""
+  await getData();
+}
+
 </script>
 
 <template>
@@ -40,13 +72,22 @@ const addItem = async()=>{
     <div class="control">
       <a class="button is-info" @click="addItem" :disable="!description">Add</a>
     </div>
-    <div class="notification" v-for="(item,i) in items" :key="item.id">
-      <p>
+    <div class="notification" v-for="(item,i) in items" :key="item">
+      <p v-if="item._id === selected">
         <span class="tag is-primary">
           {{i+1}}
         </span>
-        <!-- hi -->
-        {{item.description}}
+        <input type="text" v-model="editedDescription">
+        <a class="button" @click="cancel()">X</a>
+        <a class="button" @click="editItem(item?._id)">Ok</a>
+      </p>
+      <p v-else>
+        <span class="tag is-primary">
+          {{i+1}}
+        </span>
+        {{item?.description}}
+        <a class="button" @click="deleteItem(item?._id)">Delete</a>
+        <a class="button" @click="selectItem(item?._id,item.description)">Select</a>
       </p>
     </div>
 </div>
